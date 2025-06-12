@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Face Recognition Attendance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-image: url('{{ url_for("static", filename="BGIMAGE.jpeg") }}');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      margin: 0;
+      padding: 0;
+      color: white;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      max-width: 1000px;
+      margin: auto;
+      padding: 30px 20px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 12px;
+      margin-top: 40px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .column {
+      flex: 1 1 45%;
+      margin: 10px;
+      min-width: 300px;
+    }
+
+    h1 {
+      text-align: center;
+      width: 100%;
+      color: #ffffff;
+    }
+
+    h2 {
+      text-align: center;
+      color: #ffffff;
+    }
+
+    form {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    input[type="submit"],
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    input[type="submit"],
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover,
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .link-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: -10px;
+    }
+
+    .link-buttons a,
+    .link-buttons button {
+      background-color: #28a745;
+      padding: 10px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      color: white;
+      font-size: 15px;
+    }
+
+    .link-buttons a:hover,
+    .link-buttons button:hover {
+      background-color: #1e7e34;
+    }
+
+    .reset-button {
+      background-color: #dc3545;
+    }
+
+    .reset-button:hover {
+      background-color: #b52a38;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        padding: 20px 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Facial Recognition Attendance System</h1>
+
+    <!-- LEFT COLUMN -->
+    <div class="column">
+      <!-- Mark Attendance -->
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <h2>Mark Attendance</h2>
+        <label for="image">Upload Group Image:</label>
+        <input type="file" name="image" id="image" accept="image/*" required>
+        <input type="submit" value="Detect & Mark Attendance">
+      </form>
+
+      <!-- Add New Student -->
+      <form action="/add-student" method="post" enctype="multipart/form-data">
+        <h2>Add New Student</h2>
+        <label for="student_name">Student Name:</label>
+        <input type="text" name="student_name" id="student_name" required>
+
+        <label for="student_image">Upload a 10-second video of the student from all angles:</label>
+        <input type="file" name="student_image" id="student_image" accept="video/*" required>
+
+        <input type="submit" value="Add Student">
+      </form>
+
+      <!-- Download + Reset -->
+      <div class="link-buttons">
+        <a href="/download">Download Attendance CSV</a>
+        <form action="/reset" method="get" style="display:inline;">
+          <button type="submit" class="reset-button">Reset Attendance</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="column">
+      <!-- Caption Generator -->
+      <form action="/describe-image" method="post" enctype="multipart/form-data">
+        <h2>Describe an Image (Caption Generator)</h2>
+        <label for="desc_image">Upload Image:</label>
+        <input type="file" name="image" id="desc_image" accept="image/*" required>
+        <input type="submit" value="Generate Description">
+      </form>
+
+      {% if paragraph %}
+        <div style="background-color: rgba(255,255,255,0.9); padding: 15px; border-radius: 10px; color: #333; margin-top: 15px;">
+          <strong>Caption:</strong>
+          <p>{{ paragraph }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>
