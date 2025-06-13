@@ -38,19 +38,22 @@ def loadStudentImages():
 
 def findEncodings(images):
     encodeList = []
-    total = len(images)
-    sample_size = min(30, total)
-    sampled_images = random.sample(images, sample_size)
+    print(f"Encoding {len(images)} total images...")
 
-    for img in sampled_images:
+    for i, img in enumerate(images):
         try:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             encodings = face_recognition.face_encodings(img)
             if encodings:
                 encodeList.append(encodings[0])
+            else:
+                print(f"⚠️ No encoding found for image {i}")
         except Exception as e:
-            print(f"Encoding error: {e}")
+            print(f"Encoding error at image {i}: {e}")
+    
+    print(f"✅ Encoded {len(encodeList)} faces successfully.")
     return encodeList
+
 
 def markAttendance(name):
     if not os.path.exists(CSV_FILE):
@@ -182,8 +185,32 @@ def describe_image():
     image_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(image_path)
 
+    # 🟡 Run face recognition on this image
+    img = cv2.imread(image_path)
+    if img is None:
+        return render_template("index.html", paragraph="Image loading failed")
+
+    imgS = cv2.resize(img, (0, 0), None, 0.25, 0.25)
+    imgS = cv2.cvtColor(imgS, cv2.COLOR_BGR2RGB)
+
+    facesInFrame = face_recognition.face_locations(imgS)
+    encodesInFrame = face_recognition.face_encodings(imgS, facesInFrame)
+
+    detected_names = []
+
+    for encodeFace in encodesInFrame:
+        matches = face_recognition.compare_faces(encodeKnown, encodeFace)
+        faceDis = face_recognition.face_distance(encodeKnown, encodeFace)
+        matchIndex = np.argmin(faceDis)
+
+        if matches[matchIndex] and faceDis[matchIndex] < 0.5:
+            name = classNames[matchIndex].upper()
+            detected_names.append(name)
+        else:
+            print("Unknown face detected in describe-image")
+
     try:
-        paragraph = generate_caption_paragraph(image_path)
+        paragraph = generate_caption_paragraph(image_path, detected_names)
         return render_template("index.html", paragraph=paragraph)
     except Exception as e:
         return render_template("index.html", paragraph=f"Error: {str(e)}")

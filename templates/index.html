@@ -5,61 +5,65 @@
   <title>Face Recognition Attendance</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
+
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Quicksand', sans-serif;
       background-image: url('{{ url_for("static", filename="BGIMAGE.jpeg") }}');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       margin: 0;
       padding: 0;
-      color: white;
+      color: #fff;
     }
 
     .container {
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-between;
-      max-width: 1000px;
-      margin: auto;
+      justify-content: center;
+      max-width: 1100px;
+      margin: 40px auto;
       padding: 30px 20px;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 12px;
-      margin-top: 40px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-
-    .column {
-      flex: 1 1 45%;
-      margin: 10px;
-      min-width: 300px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
     }
 
     h1 {
-      text-align: center;
       width: 100%;
-      color: #ffffff;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #fff;
+      font-size: 2rem;
+      text-shadow: 2px 2px 4px #000;
+    }
+
+    .column {
+      flex: 1 1 100%;
+      margin: 10px;
+    }
+
+    form {
+      background-color: rgba(255, 255, 255, 0.92);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      color: #333;
     }
 
     h2 {
       text-align: center;
-      color: #ffffff;
-    }
-
-    form {
-      background-color: rgba(255, 255, 255, 0.85);
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 25px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      color: #4b0082;
+      margin-bottom: 15px;
     }
 
     label {
+      font-weight: 600;
       display: block;
-      text-align: left;
-      margin-bottom: 8px;
-      font-weight: bold;
-      color: #333;
+      margin-bottom: 6px;
     }
 
     input[type="text"],
@@ -69,58 +73,67 @@
       width: 100%;
       padding: 10px;
       margin-bottom: 15px;
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
     }
 
     input[type="submit"],
     button {
-      background-color: #007bff;
+      background-color: #6c5ce7;
       color: white;
-      cursor: pointer;
+      border: none;
+      transition: background-color 0.3s ease;
     }
 
     input[type="submit"]:hover,
     button:hover {
-      background-color: #0056b3;
+      background-color: #5e50c9;
     }
 
     .link-buttons {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 15px;
-      margin-top: -10px;
+      justify-content: space-between;
+      gap: 10px;
     }
 
     .link-buttons a,
     .link-buttons button {
-      background-color: #28a745;
-      padding: 10px 20px;
-      border-radius: 6px;
-      text-decoration: none;
+      flex: 1;
+      text-align: center;
+      background-color: #00b894;
       color: white;
-      font-size: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
     }
 
     .link-buttons a:hover,
     .link-buttons button:hover {
-      background-color: #1e7e34;
+      background-color: #019875;
     }
 
     .reset-button {
-      background-color: #dc3545;
+      background-color: #d63031 !important;
     }
 
     .reset-button:hover {
-      background-color: #b52a38;
+      background-color: #b71c1c !important;
+    }
+
+    .caption-box {
+      background-color: rgba(255,255,255,0.9);
+      padding: 15px;
+      border-radius: 10px;
+      color: #333;
+      margin-top: 15px;
     }
 
     @media (max-width: 768px) {
-      .container {
+      .link-buttons {
         flex-direction: column;
-        padding: 20px 15px;
       }
     }
   </style>
@@ -129,7 +142,6 @@
   <div class="container">
     <h1>Facial Recognition Attendance System</h1>
 
-    <!-- LEFT COLUMN -->
     <div class="column">
       <!-- Mark Attendance -->
       <form action="/upload" method="post" enctype="multipart/form-data">
@@ -137,46 +149,48 @@
         <label for="image">Upload Group Image:</label>
         <input type="file" name="image" id="image" accept="image/*" required>
         <input type="submit" value="Detect & Mark Attendance">
+
+        <!-- Download + Reset Buttons -->
+        <div class="link-buttons">
+          <a href="/download">Download CSV</a>
+          <button type="submit" formaction="/reset" formmethod="get" class="reset-button">Reset</button>
+        </div>
       </form>
 
-      <!-- Add New Student -->
-      <form action="/add-student" method="post" enctype="multipart/form-data">
+      <!-- Add Student -->
+      <form id="studentForm" action="/add-student" method="post" enctype="multipart/form-data" onsubmit="return showPopup();">
         <h2>Add New Student</h2>
         <label for="student_name">Student Name:</label>
         <input type="text" name="student_name" id="student_name" required>
 
-        <label for="student_image">Upload a 10-second video of the student from all angles:</label>
+        <label for="student_image">Upload a 10-second video:</label>
         <input type="file" name="student_image" id="student_image" accept="video/*" required>
 
         <input type="submit" value="Add Student">
       </form>
 
-      <!-- Download + Reset -->
-      <div class="link-buttons">
-        <a href="/download">Download Attendance CSV</a>
-        <form action="/reset" method="get" style="display:inline;">
-          <button type="submit" class="reset-button">Reset Attendance</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- RIGHT COLUMN -->
-    <div class="column">
       <!-- Caption Generator -->
       <form action="/describe-image" method="post" enctype="multipart/form-data">
-        <h2>Describe an Image (Caption Generator)</h2>
+        <h2>Describe an Image</h2>
         <label for="desc_image">Upload Image:</label>
         <input type="file" name="image" id="desc_image" accept="image/*" required>
         <input type="submit" value="Generate Description">
       </form>
 
       {% if paragraph %}
-        <div style="background-color: rgba(255,255,255,0.9); padding: 15px; border-radius: 10px; color: #333; margin-top: 15px;">
+        <div class="caption-box">
           <strong>Caption:</strong>
           <p>{{ paragraph }}</p>
         </div>
       {% endif %}
     </div>
   </div>
+
+  <script>
+    function showPopup() {
+      alert("✅ New student added successfully!");
+      return true;
+    }
+  </script>
 </body>
 </html>

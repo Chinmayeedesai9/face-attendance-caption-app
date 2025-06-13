@@ -15,29 +15,38 @@ def generate_caption_paragraph(image_path, detected_names=None):
     transform = transforms.ToTensor()
     image_tensor = transform(image).unsqueeze(0)
 
+    captions = []
+
     with torch.no_grad():
         predictions = det_model(image_tensor)
 
-    captions = []
     for i, box in enumerate(predictions[0]['boxes']):
-        if predictions[0]['scores'][i] < 0.6:
+        score = predictions[0]['scores'][i]
+        if score < 0.6:
             continue
+
         x_min, y_min, x_max, y_max = box.int().tolist()
         region = image.crop((x_min, y_min, x_max, y_max))
 
         inputs = blip_processor(images=region, return_tensors="pt")
         with torch.no_grad():
             output = blip_model.generate(**inputs)
-        caption = blip_processor.decode(output[0], skip_special_tokens=True)
-        captions.append(caption.strip())
+        caption = blip_processor.decode(output[0], skip_special_tokens=True).strip()
+        if caption and caption not in captions:
+            captions.append(caption)
 
-    unique = list(set(captions))
-    if unique:
-        para = f"In the image, I see {', '.join(unique[:3])}, and more in the scene."
+    # Compose paragraph with multiple lines
+    if captions:
+        para = "Here’s what I see in the image:\n"
+        for cap in captions[:5]:  # Limit to first 5 regions
+            para += f"- {cap}\n"
     else:
-        para = "No identifiable objects were detected in the image."
+        para = "No clear objects were detected in the image.\n"
 
+    # Add detected names if available
     if detected_names:
-        para += f" The following students were identified: {', '.join(detected_names)}."
+        para += "\nThe following students were identified in the image:\n"
+        for name in detected_names:
+            para += f"- {name}\n"
 
     return para
